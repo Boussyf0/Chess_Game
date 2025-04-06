@@ -1,0 +1,322 @@
+﻿<Window x:Class="ChesseUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChesseUI"
+        mc:Ignorable="d"
+        Title="Chess"
+        SizeToContent="Height"
+        Width="680"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/icon.ico">
+
+    <!-- 
+      ============================================
+         WINDOW BACKGROUND / RADIAL GRADIENT
+      ============================================
+    -->
+    <Window.Background>
+        <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="1.2" RadiusY="1.2">
+            <GradientStop Color="#FF202020" Offset="0.0"/>
+            <GradientStop Color="#FF101010" Offset="0.5"/>
+            <GradientStop Color="#FF000000" Offset="1.0"/>
+        </RadialGradientBrush>
+    </Window.Background>
+
+    <Window.Resources>
+        <!-- Font families you might use (if installed or custom) -->
+        <FontFamily x:Key="TitleFontFamily">Segoe UI Semibold</FontFamily>
+        <FontFamily x:Key="ComboFontFamily">Segoe UI</FontFamily>
+
+        <!-- Common brushes -->
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#FFE0E0E0"/>
+        <!-- Light gray text -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF66CCFF"/>
+        <!-- Light bluish accent -->
+
+        <!-- 
+          Top panel style:
+          - Slightly translucent background
+          - Drop shadow effect
+          - Single Margin setter
+        -->
+        <Style x:Key="TopControlsPanelStyle" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="10,10,10,10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8"
+                                      ShadowDepth="0"
+                                      Opacity="0.6"
+                                      Color="Black"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#AA222222"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 
+          Label style (for "White:", "Black:", "Difficulty:")
+          Uses the TitleFontFamily, size 16, bold, etc.
+        -->
+        <Style x:Key="LabelTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="{StaticResource TitleFontFamily}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+        </Style>
+
+        <!-- 
+          Fancy ComboBoxItem style:
+          - Slight scale transform on hover
+          - Different colors when hovered or selected
+        -->
+        <Style x:Key="FancyComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="FontFamily" Value="{StaticResource ComboFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Foreground" Value="#FFF0F0F0"/>
+            <Setter Property="Background" Value="#FF333333"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <Style.Triggers>
+                <!-- Hover effect -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Background" Value="#FF444444"/>
+                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                </Trigger>
+                <!-- Selected item in the list -->
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF555555"/>
+                    <Setter Property="Foreground" Value="#FF66FF66"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 
+          A subtle DropShadow effect used on the popup border
+        -->
+        <DropShadowEffect x:Key="DropShadow" 
+                          ShadowDepth="3" 
+                          BlurRadius="8" 
+                          Opacity="0.5" 
+                          Color="Black"/>
+
+        <!-- 
+          CONTROL TEMPLATE for the ComboBox 
+          with "SelectionBoxItem" binding
+        -->
+        <ControlTemplate x:Key="FancyComboBoxTemplate" TargetType="ComboBox">
+            <Grid>
+                <!-- Outer border for the collapsed combo -->
+                <Border x:Name="Border"
+                        CornerRadius="5"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+
+                    <Grid>
+                        <!-- BINDING so selected item appears in collapsed state -->
+                        <ContentPresenter
+                            Margin="6,3,28,3"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Content="{TemplateBinding SelectionBoxItem}"
+                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                            RecognizesAccessKey="True" />
+
+                        <!-- Arrow toggle button -->
+                        <ToggleButton x:Name="ToggleButton"
+                                      Focusable="False"
+                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                      HorizontalAlignment="Right"
+                                      Width="22"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      Margin="0">
+                            <Path x:Name="Arrow"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M 0 0 L 4 4 L 8 0 Z"
+                                  Fill="#FFDADADA"/>
+                        </ToggleButton>
+                    </Grid>
+                </Border>
+
+                <!-- Popup for the dropdown items -->
+                <Popup x:Name="Popup"
+                       Placement="Bottom"
+                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                       AllowsTransparency="True"
+                       Focusable="False"
+                       PopupAnimation="Slide">
+
+                    <Grid x:Name="DropDown"
+                          SnapsToDevicePixels="True"
+                          MinWidth="{TemplateBinding ActualWidth}"
+                          MaxHeight="{TemplateBinding MaxDropDownHeight}">
+
+                        <!-- 
+                          Rounded corner border with a radial background
+                          & subtle drop shadow
+                        -->
+                        <Border x:Name="DropDownBorder"
+                                CornerRadius="8"
+                                BorderBrush="#FF555555"
+                                BorderThickness="2"
+                                Padding="4"
+                                Effect="{StaticResource DropShadow}">
+                            <Border.Background>
+                                <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="1.0" RadiusY="1.0">
+                                    <GradientStop Color="#FF202020" Offset="0.0"/>
+                                    <GradientStop Color="#FF303030" Offset="1.0"/>
+                                </RadialGradientBrush>
+                            </Border.Background>
+
+                            <ScrollViewer Margin="0,2,0,2" SnapsToDevicePixels="True">
+                                <StackPanel IsItemsHost="True" />
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Popup>
+            </Grid>
+
+            <!-- Triggers for combo states -->
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="Border" Property="Opacity" Value="0.4"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Border" Property="Background" Value="#FF3C3C3C"/>
+                </Trigger>
+                <Trigger Property="IsDropDownOpen" Value="True">
+                    <!-- Flip arrow 180 degrees -->
+                    <Setter TargetName="Arrow" Property="RenderTransform">
+                        <Setter.Value>
+                            <RotateTransform Angle="180" CenterX="4" CenterY="2"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter TargetName="Border" Property="Background" Value="#FF3C3C3C"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- 
+          Final ComboBox style hooking it all together 
+        -->
+        <Style x:Key="FancyComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template" Value="{StaticResource FancyComboBoxTemplate}"/>
+            <Setter Property="FontFamily" Value="{StaticResource ComboFontFamily}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Background" Value="#FF2C2C2C"/>
+            <Setter Property="BorderBrush" Value="#FF666666"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="3,2"/>
+            <Setter Property="Foreground" Value="#FFCCCCCC"/>
+            <!-- Light gray text for selected item -->
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource FancyComboBoxItemStyle}"/>
+            <Setter Property="MaxDropDownHeight" Value="250"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+
+    <!-- 
+       ===========================================
+          MAIN LAYOUT:
+          1) A top panel for combos 
+          2) The chessboard 
+       ===========================================
+    -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top panel with combos: White, Black, Difficulty -->
+        <StackPanel Grid.Row="0" Style="{StaticResource TopControlsPanelStyle}">
+            <!-- White player combo -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
+                <TextBlock Style="{StaticResource LabelTextBlockStyle}" Text="White:"/>
+                <ComboBox x:Name="WhitePlayerComboBox"
+                          Style="{StaticResource FancyComboBoxStyle}"
+                          Width="110"
+                          SelectionChanged="WhitePlayerComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Human" IsSelected="True"/>
+                    <ComboBoxItem Content="Computer"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Black player combo -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
+                <TextBlock Style="{StaticResource LabelTextBlockStyle}" Text="Black:"/>
+                <ComboBox x:Name="BlackPlayerComboBox"
+                          Style="{StaticResource FancyComboBoxStyle}"
+                          Width="110"
+                          SelectionChanged="BlackPlayerComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Human"/>
+                    <ComboBoxItem Content="Computer" IsSelected="True"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Difficulty combo -->
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource LabelTextBlockStyle}" Text="Difficulty:"/>
+                <ComboBox x:Name="DifficultyComboBox"
+                          Style="{StaticResource FancyComboBoxStyle}"
+                          Width="110"
+                          SelectionChanged="DifficultyComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Easy"/>
+                    <ComboBoxItem Content="Medium" IsSelected="True"/>
+                    <ComboBoxItem Content="Hard"/>
+                    <ComboBoxItem Content="Expert"/>
+                </ComboBox>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Chessboard in second row with a Viewbox -->
+        <Viewbox Grid.Row="1">
+            <Grid x:Name="BoardGrid"
+                  Width="600"
+                  Height="600"
+                  MouseDown="BoardGrid_MouseDown">
+
+                <!-- Chessboard background -->
+                <Grid.Background>
+                    <ImageBrush ImageSource="Assets/Board.png" Stretch="UniformToFill"/>
+                </Grid.Background>
+
+                <!-- Move highlight layer -->
+                <UniformGrid x:Name="HighlightGrid" Rows="8" Columns="8"/>
+
+                <!-- Pieces layer -->
+                <UniformGrid x:Name="PieceGrid"
+                             Rows="8"
+                             Columns="8"
+                             RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                <!-- Overlay content: Promotion, Game Over, etc. -->
+                <ContentControl x:Name="MenuContainer"/>
+            </Grid>
+        </Viewbox>
+    </Grid>
+</Window>
