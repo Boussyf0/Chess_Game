@@ -31,9 +31,7 @@ A complete chess implementation with an intelligent AI opponent:
 
 ### 🔗 Connect with Me
 
-- [LinkedIn](https://www.linkedin.com/in/yourprofile)
-- [Medium](https://medium.com/@yourusername)
-- [Twitter](https://twitter.com/yourusername)
+- [LinkedIn](https://www.linkedin.com/in/abderrahim-boussyf-167539175/)
 
 Feel free to explore my repositories and reach out if you'd like to collaborate on projects or discuss ideas in data science, software engineering, or data engineering!
 
